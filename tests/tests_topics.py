@@ -67,4 +67,4 @@ def test_get_topic_statistics():
     topics[1]["status"] = "закреплена"
     stats = get_topic_statistics(topics)
     assert stats["свободна"] == 1
-    assert stats["закреплена"] == 1
+    assert stats["закреплена"] == 1

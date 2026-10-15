@@ -53,4 +53,4 @@ def test_get_supervisor_full_name():
     supervisors = []
     add_supervisor(supervisors, "Петрова А. С.", "к.т.н.", "доцент")
     assert get_supervisor_full_name(supervisors, 1) == "Петрова А. С."
-    assert get_supervisor_full_name(supervisors, 999) == "—"
+    assert get_supervisor_full_name(supervisors, 999) == "—"

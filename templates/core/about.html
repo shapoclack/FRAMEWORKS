@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}О проекте — {{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card p-4 shadow-sm mb-4">
+            <h2 class="fw-bold text-primary mb-3">
+                <i class="bi bi-info-circle-fill me-2"></i>О проекте: Учёт курсовых работ
+            </h2>
+            <p class="lead text-muted">
+                Проект представляет собой специализированную информационную систему для автоматизации
+                учебного процесса кафедры в части распределения и контроля выполнения курсовых проектов.
+            </p>
+
+            <hr class="my-4">
+
+            <h4 class="fw-bold mb-3"><i class="bi bi-bullseye me-2 text-danger"></i>Цель и назначение</h4>
+            <p>
+                Система решает проблему координации между студентами, научными руководителями и учебно-методическим
+                отделом кафедры. Обеспечивается прозрачный выбор тем, фиксация сроков сдачи (дедлайнов) и аудит изменения статусов.
+            </p>
+
+            <h4 class="fw-bold mb-3 mt-3"><i class="bi bi-people-fill me-2 text-primary"></i>Целевая аудитория</h4>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100 bg-light">
+                        <h6 class="fw-bold text-dark"><i class="bi bi-mortarboard me-1 text-primary"></i>Студенты</h6>
+                        <p class="small text-muted mb-0">Поиск свободных тем по ключевым словам, закрепление за научным руководителем, отслеживание статуса сдачи.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100 bg-light">
+                        <h6 class="fw-bold text-dark"><i class="bi bi-person-workspace me-1 text-success"></i>Руководители</h6>
+                        <p class="small text-muted mb-0">Формирование каталога тем, проверка работ, изменение статусов («на проверке» &rarr; «защищена»), контроль нагрузки.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100 bg-light">
+                        <h6 class="fw-bold text-dark"><i class="bi bi-clipboard-data me-1 text-warning"></i>Методисты</h6>
+                        <p class="small text-muted mb-0">Сводная статистика по группам, выявление нераспределённых студентов, соблюдение лимитов нагрузки преподавателей.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="fw-bold mb-3"><i class="bi bi-diagram-3-fill me-2 text-info"></i>Сущности предметной области (ПР3)</h4>
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Студент (Student):</strong> ФИО, учебная группа, направление подготовки, e-mail.
+                    </div>
+                    <span class="badge bg-info-subtle text-info">Таблица students</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Научный руководитель (Supervisor):</strong> ФИО, степень, должность, e-mail, максимальный лимит тем (1..20).
+                    </div>
+                    <span class="badge bg-success-subtle text-success">Таблица supervisors</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Тема (Topic):</strong> Название, описание, руководитель, закрепленный студент, статус, дедлайн.
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary">Таблица topics</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>История статусов (StatusHistory):</strong> Аудит смены статусов (старый статус, новый статус, дата, автор).
+                    </div>
+                    <span class="badge bg-secondary-subtle text-secondary">Таблица status_history</span>
+                </li>
+            </ul>
+
+            <h4 class="fw-bold mb-3"><i class="bi bi-layers-fill me-2 text-success"></i>Архитектура и стек технологий</h4>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge bg-dark p-2">Python 3.13</span>
+                <span class="badge bg-success p-2">Django 6.1 (MVT)</span>
+                <span class="badge bg-primary p-2">Bootstrap 5.3</span>
+                <span class="badge bg-info text-dark p-2">SQLite / PostgreSQL</span>
+                <span class="badge bg-secondary p-2">Pytest</span>
+                <span class="badge bg-danger p-2">Git / PR5</span>
+            </div>
+            <p class="text-muted small">
+                Приложение построено по архитектурному шаблону MVT (Model-View-Template):
+                модели инкапсулируют логику работы с базой данных через Django ORM, представления (views) обрабатывают HTTP-запросы
+                и возвращают сформированные HTTP-ответы, а шаблоны (templates) на основе Bootstrap формируют адаптивный веб-интерфейс.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

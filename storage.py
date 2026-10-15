@@ -55,4 +55,4 @@ def load_supervisors(filename: str = "data/supervisors.json") -> list[dict]:
 def save_supervisors(
     supervisors: list[dict], filename: str = "data/supervisors.json"
 ) -> None:
-    save_json(filename, supervisors)
+    save_json(filename, supervisors)

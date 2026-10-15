@@ -17,6 +17,7 @@ def test_find_student_by_group():
     found = find_student(students, "21")
     assert len(found) == 1
 
+
 def test_get_student_by_id():
     students = []
     add_student(students, "Иванов И. И.", "ПИ-21-1", "ПИ")

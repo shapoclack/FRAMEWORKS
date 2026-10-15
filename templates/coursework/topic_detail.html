@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}{{ topic.title }} — Детали темы{% endblock %}
+
+{% block content %}
+<!-- Навигация назад -->
+<div class="mb-3">
+    <a href="{% url 'coursework:topic_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Вернуться к каталогу тем
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Левая колонка: информация о теме -->
+    <div class="col-lg-8">
+        <div class="card p-4 shadow-sm mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                <span class="badge bg-secondary">Тема #{{ topic.id }}</span>
+                <span class="badge bg-{{ topic.status_badge_class }} badge-status fs-6">
+                    {{ topic.get_status_display }}
+                </span>
+            </div>
+
+            <h3 class="fw-bold mb-3">{{ topic.title }}</h3>
+
+            {% if topic.is_available %}
+            <div class="alert alert-success d-flex align-items-center gap-2 py-2">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <div><strong>Тема доступна для закрепления.</strong> Студент может подать заявку научному руководителю.</div>
+            </div>
+            {% else %}
+            <div class="alert alert-info d-flex align-items-center gap-2 py-2">
+                <i class="bi bi-info-circle-fill fs-5"></i>
+                <div>Тема закреплена или находится на этапе выполнения / защиты.</div>
+            </div>
+            {% endif %}
+
+            <h5 class="fw-bold mt-4 mb-2"><i class="bi bi-card-text me-2 text-primary"></i>Описание и аннотация темы</h5>
+            <p class="text-secondary lead" style="font-size: 1.05rem;">
+                {{ topic.description|default:"Подробное описание пока не заполнено." }}
+            </p>
+
+            <hr class="my-3">
+
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Срок сдачи (дедлайн):</span>
+                    <strong class="text-danger">
+                        <i class="bi bi-calendar-check me-1"></i>
+                        {{ topic.deadline|date:"d.m.Y"|default:"Не установлен" }}
+                    </strong>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Дата внесения в базу:</span>
+                    <span>{{ topic.created_at|date:"d.m.Y H:i" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- История изменений статусов (Аудит из ПР3) -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-clock-history me-2 text-primary"></i>История изменений статуса темы
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Предыдущий статус</th>
+                                <th>Новый статус</th>
+                                <th>Дата и время</th>
+                                <th>Автор изменения</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in topic.status_history.all %}
+                            <tr>
+                                <td><span class="badge bg-secondary">{{ record.old_status }}</span></td>
+                                <td><span class="badge bg-primary">{{ record.new_status }}</span></td>
+                                <td><small class="text-muted">{{ record.changed_at|date:"d.m.Y H:i" }}</small></td>
+                                <td>{{ record.changed_by|default:"Система" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-3 text-muted">
+                                    История изменений статуса пока пуста.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Правая колонка: участники (Руководитель и Студент) -->
+    <div class="col-lg-4">
+        <!-- Карточка научного руководителя -->
+        <div class="card p-3 shadow-sm mb-4">
+            <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                <i class="bi bi-person-workspace fs-4"></i>
+                <h5 class="mb-0 fw-bold">Научный руководитель</h5>
+            </div>
+            <h6 class="fw-bold mb-1">{{ topic.supervisor.full_name }}</h6>
+            <p class="text-muted small mb-2">
+                {{ topic.supervisor.position }}, {{ topic.supervisor.degree }}
+            </p>
+            <ul class="list-unstyled small mb-3">
+                <li class="mb-1">
+                    <i class="bi bi-envelope text-muted me-1"></i>
+                    <a href="mailto:{{ topic.supervisor.email }}" class="text-decoration-none">{{ topic.supervisor.email }}</a>
+                </li>
+                <li class="mb-1">
+                    <i class="bi bi-speedometer2 text-muted me-1"></i>
+                    Лимит тем: {{ topic.supervisor.max_topics }}
+                </li>
+                <li>
+                    <i class="bi bi-check2-circle text-muted me-1"></i>
+                    Осталось мест: <span class="badge bg-success-subtle text-success">{{ topic.supervisor.available_slots }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Карточка закрепленного студента -->
+        <div class="card p-3 shadow-sm">
+            <div class="d-flex align-items-center gap-2 mb-3 text-success">
+                <i class="bi bi-mortarboard fs-4"></i>
+                <h5 class="mb-0 fw-bold">Студент-исполнитель</h5>
+            </div>
+            {% if topic.student %}
+                <h6 class="fw-bold mb-1">{{ topic.student.full_name }}</h6>
+                <p class="text-muted small mb-2">
+                    Группа: <span class="badge bg-primary-subtle text-primary">{{ topic.student.group_name }}</span>
+                </p>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-1">
+                        <i class="bi bi-compass text-muted me-1"></i>
+                        {{ topic.student.direction|default:"Направление не указано" }}
+                    </li>
+                    <li>
+                        <i class="bi bi-envelope text-muted me-1"></i>
+                        <a href="mailto:{{ topic.student.email }}" class="text-decoration-none">{{ topic.student.email }}</a>
+                    </li>
+                </ul>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-person-x fs-1 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-0 small">Студент пока не закреплён за данной темой.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

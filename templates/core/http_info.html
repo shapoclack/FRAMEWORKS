@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}HTTP & Веб-архитектура — {{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- Вводная секция -->
+        <div class="card shadow-sm p-4 mb-4">
+            <h2 class="fw-bold text-primary mb-3">
+                <i class="bi bi-hdd-network-fill me-2"></i>Протокол HTTP: Запросы, Ответы и Архитектура
+            </h2>
+            <p class="lead text-muted">
+                <strong>HTTP (HyperText Transfer Protocol)</strong> — протокол прикладного уровня передачи данных в сети.
+                В архитектуре Django каждая view-функция принимает объект <code>HttpRequest</code> и обязана вернуть объект <code>HttpResponse</code>.
+            </p>
+        </div>
+
+        <!-- Разбор текущего реального запроса -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-cpu me-2"></i>Элементы текущего HTTP-запроса (Django HttpRequest)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded border">
+                            <span class="text-muted small d-block">HTTP Метод:</span>
+                            <span class="badge bg-success fs-6 mt-1">{{ method }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="p-3 bg-light rounded border">
+                            <span class="text-muted small d-block">Путь запроса (Path):</span>
+                            <code class="fs-6 mt-1 d-block text-dark">{{ path }}</code>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border">
+                            <span class="text-muted small d-block">Схема / Протокол:</span>
+                            <span class="fw-bold">{{ scheme|upper }}</span>
+                            <span class="badge {% if is_secure %}bg-success{% else %}bg-secondary{% endif %} ms-2">
+                                {% if is_secure %}Безопасный (HTTPS){% else %}Незащищенный (HTTP){% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mt-4 mb-2"><i class="bi bi-list-check me-1 text-primary"></i>Заголовки запроса (HTTP Request Headers):</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 25%;">Заголовок</th>
+                                <th style="width: 75%;">Значение</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, val in headers.items %}
+                            <tr>
+                                <td><code>{{ key }}</code></td>
+                                <td class="text-break"><small>{{ val }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if query_params %}
+                <h6 class="fw-bold mt-3 mb-2"><i class="bi bi-funnel me-1 text-primary"></i>Параметры строки запроса (Query String):</h6>
+                <pre class="bg-light p-2 rounded"><code>{{ query_params }}</code></pre>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Теоретическая справка: структура запроса и ответа -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-light fw-bold">
+                        <i class="bi bi-arrow-right-circle text-primary me-2"></i>Структура HTTP-запроса (Request)
+                    </div>
+                    <div class="card-body">
+                        <ol class="mb-0">
+                            <li class="mb-2">
+                                <strong>Стартовая строка (Request Line):</strong>
+                                <br><small class="text-muted">Содержит метод, URI ресурса и версию протокола: <code>GET /coursework/topics/ HTTP/1.1</code></small>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Заголовки (Request Headers):</strong>
+                                <br><small class="text-muted">Метаданные клиента (<code>Host</code>, <code>User-Agent</code>, <code>Accept</code>, <code>Cookie</code>).</small>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Пустая строка (CRLF):</strong>
+                                <br><small class="text-muted">Разделитель между заголовками и телом сообщения.</small>
+                            </li>
+                            <li>
+                                <strong>Тело сообщения (Message Body):</strong>
+                                <br><small class="text-muted">Передаётся при методах POST/PUT/PATCH (данные формы, JSON и т.д.). В GET-запросах обычно отсутствует.</small>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-light fw-bold">
+                        <i class="bi bi-arrow-left-circle text-success me-2"></i>Структура HTTP-ответа (Response)
+                    </div>
+                    <div class="card-body">
+                        <ol class="mb-0">
+                            <li class="mb-2">
+                                <strong>Строка состояния (Status Line):</strong>
+                                <br><small class="text-muted">Версия протокола, код состояния и поясняющая фраза: <code>HTTP/1.1 200 OK</code></small>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Заголовки (Response Headers):</strong>
+                                <br><small class="text-muted">Метаданные сервера (<code>Content-Type: text/html</code>, <code>Content-Length</code>, <code>Set-Cookie</code>).</small>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Пустая строка (CRLF):</strong>
+                                <br><small class="text-muted">Разделитель заголовков и содержимого ответа.</small>
+                            </li>
+                            <li>
+                                <strong>Тело ответа (Response Body):</strong>
+                                <br><small class="text-muted">HTML-разметка страницы, JSON-документ или файл, возвращаемый клиенту.</small>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Таблица кодов состояния HTTP -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-tags text-warning me-2"></i>Классы кодов состояния HTTP (Status Codes)
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Диапазон</th>
+                                <th>Категория</th>
+                                <th>Типичные примеры</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-secondary">1xx</span></td>
+                                <td>Информационные</td>
+                                <td><code>100 Continue</code>, <code>101 Switching Protocols</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">2xx</span></td>
+                                <td>Успешные</td>
+                                <td><code>200 OK</code> (страница загружена), <code>201 Created</code> (запись создана)</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info text-dark">3xx</span></td>
+                                <td>Перенаправление (Redirect)</td>
+                                <td><code>301 Moved Permanently</code>, <code>302 Found</code> (редирект после POST)</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning text-dark">4xx</span></td>
+                                <td>Ошибки клиента</td>
+                                <td><code>400 Bad Request</code>, <code>403 Forbidden</code>, <code>404 Not Found</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">5xx</span></td>
+                                <td>Ошибки сервера</td>
+                                <td><code>500 Internal Server Error</code>, <code>502 Bad Gateway</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

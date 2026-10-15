@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Главная — {{ title }}{% endblock %}
+
+{% block content %}
+<!-- Баннер приветствия -->
+<div class="hero-section">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-bold mb-3">Система учёта тем курсовых работ</h1>
+            <p class="lead mb-4">
+                Веб-приложение для централизованного учета, распределения и контроля статусов выполнения
+                курсовых работ между студентами и научными руководителями.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'coursework:topic_list' %}" class="btn btn-warning btn-lg fw-semibold">
+                    <i class="bi bi-journal-check me-2"></i>Смотреть темы
+                </a>
+                <a href="{% url 'coursework:topic_list' %}?status=свободна" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-unlock me-2"></i>Только свободные ({{ free_topics }})
+                </a>
+                <a href="{% url 'core:http_info' %}" class="btn btn-light btn-lg">
+                    <i class="bi bi-hdd-network me-2"></i>HTTP & Архитектура
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-4 d-none d-lg-block text-center">
+            <i class="bi bi-journal-bookmark text-warning opacity-75" style="font-size: 8rem;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Карточки статистики -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card stat-card stat-primary h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1 small fw-bold">Всего тем</h6>
+                    <h2 class="fw-bold mb-0 text-primary">{{ total_topics }}</h2>
+                </div>
+                <div class="bg-primary-subtle text-primary p-3 rounded-circle">
+                    <i class="bi bi-files fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card stat-card stat-success h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1 small fw-bold">Свободно</h6>
+                    <h2 class="fw-bold mb-0 text-success">{{ free_topics }}</h2>
+                </div>
+                <div class="bg-success-subtle text-success p-3 rounded-circle">
+                    <i class="bi bi-check-circle fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card stat-card stat-warning h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1 small fw-bold">В работе / Закреплено</h6>
+                    <h2 class="fw-bold mb-0 text-warning">{{ assigned_topics }}</h2>
+                </div>
+                <div class="bg-warning-subtle text-warning p-3 rounded-circle">
+                    <i class="bi bi-hourglass-split fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card stat-card stat-info h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1 small fw-bold">Студентов</h6>
+                    <h2 class="fw-bold mb-0 text-info">{{ total_students }}</h2>
+                </div>
+                <div class="bg-info-subtle text-info p-3 rounded-circle">
+                    <i class="bi bi-mortarboard fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Недавно добавленные темы -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-clock-history me-2 text-primary"></i>Последние темы курсовых работ
+        </h5>
+        <a href="{% url 'coursework:topic_list' %}" class="btn btn-sm btn-outline-primary">
+            Весь каталог <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-custom">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">#</th>
+                        <th style="width: 45%;">Тема</th>
+                        <th style="width: 25%;">Научный руководитель</th>
+                        <th style="width: 15%;">Статус</th>
+                        <th style="width: 10%;" class="text-end">Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for topic in recent_topics %}
+                    <tr>
+                        <td class="fw-bold text-muted">{{ topic.id }}</td>
+                        <td>
+                            <a href="{% url 'coursework:topic_detail' topic.id %}" class="fw-semibold text-decoration-none text-dark">
+                                {{ topic.title }}
+                            </a>
+                            {% if topic.student %}
+                                <div class="small text-muted">
+                                    <i class="bi bi-person me-1"></i>Студент: {{ topic.student.full_name }} ({{ topic.student.group_name }})
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <i class="bi bi-person-workspace text-muted me-1"></i>
+                            {{ topic.supervisor.full_name }}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ topic.status_badge_class }} badge-status">
+                                {{ topic.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'coursework:topic_detail' topic.id %}" class="btn btn-sm btn-outline-secondary">
+                                Подробнее
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            Темы пока не добавлены. Запустите <code>python manage.py seed_data</code> для наполнения базы.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Информационные блоки возможностей -->
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="card-body">
+                <div class="text-primary mb-3"><i class="bi bi-shield-check fs-2"></i></div>
+                <h5 class="card-title fw-bold">Учёт доступности тем</h5>
+                <p class="card-text text-muted">
+                    Контроль за свободными и закреплёнными темами. Прозрачное распределение между студентами с защитой от повторного выбора.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="card-body">
+                <div class="text-success mb-3"><i class="bi bi-arrow-repeat fs-2"></i></div>
+                <h5 class="card-title fw-bold">Жизненный цикл работы</h5>
+                <p class="card-text text-muted">
+                    Отслеживание всех этапов: от закрепления и разработки до отправки на проверку научному руководителю и защиты.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="card-body">
+                <div class="text-warning mb-3"><i class="bi bi-person-badge fs-2"></i></div>
+                <h5 class="card-title fw-bold">Нагрузка руководителей</h5>
+                <p class="card-text text-muted">
+                    Учет индивидуальных квот преподавателей (от 1 до 20 тем) для равномерного распределения исследовательской нагрузки.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

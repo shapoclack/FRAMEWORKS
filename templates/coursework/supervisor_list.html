@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Научные руководители — {{ title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">
+            <i class="bi bi-person-workspace me-2"></i>Научные руководители
+        </h2>
+        <p class="text-muted mb-0">Преподавательский состав кафедры и распределение академической нагрузки</p>
+    </div>
+    <div>
+        <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">
+            Всего преподавателей: {{ total_count }}
+        </span>
+    </div>
+</div>
+
+<!-- Поиск преподавателей -->
+<div class="card p-3 shadow-sm mb-4">
+    <form method="get" action="{% url 'coursework:supervisor_list' %}" class="row g-2 align-items-center">
+        <div class="col-md-10">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Поиск по ФИО, должности или учёной степени...">
+            </div>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-search me-1"></i>Найти
+            </button>
+            {% if query %}
+            <a href="{% url 'coursework:supervisor_list' %}" class="btn btn-outline-secondary" title="Сброс">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Сетка карточек руководителей -->
+<div class="row g-4">
+    {% for sup in supervisors %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm p-3">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div class="bg-primary-subtle text-primary p-3 rounded-circle">
+                        <i class="bi bi-person-badge fs-3"></i>
+                    </div>
+                    <span class="badge bg-secondary">Лимит: {{ sup.max_topics }} тем</span>
+                </div>
+
+                <h5 class="fw-bold mb-1 text-dark">{{ sup.full_name }}</h5>
+                <p class="text-muted small mb-2">
+                    {{ sup.position|default:"Преподаватель" }}, <strong>{{ sup.degree|default:"—" }}</strong>
+                </p>
+
+                <div class="mb-3 small">
+                    <i class="bi bi-envelope text-muted me-1"></i>
+                    <a href="mailto:{{ sup.email }}" class="text-decoration-none">{{ sup.email }}</a>
+                </div>
+
+                <hr class="my-2">
+
+                <!-- Нагрузка (активные темы) -->
+                <div class="my-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Текущая нагрузка:</span>
+                        <strong>{{ sup.active_topics_count }} из {{ sup.max_topics }}</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar {% if sup.active_topics_count >= sup.max_topics %}bg-danger{% else %}bg-success{% endif %}"
+                             role="progressbar"
+                             style="width: {% widthratio sup.active_topics_count sup.max_topics 100 %}%;"
+                             aria-valuenow="{{ sup.active_topics_count }}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ sup.max_topics }}">
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-1">
+                        Свободных слотов для руководства: <span class="fw-semibold text-success">{{ sup.available_slots }}</span>
+                    </small>
+                </div>
+
+                <!-- Список тем руководителя -->
+                <div class="mt-3 pt-2 border-top flex-grow-1">
+                    <h6 class="small fw-bold text-muted text-uppercase mb-2">Темы руководителя:</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        {% for topic in sup.topics.all %}
+                        <li class="mb-1 text-truncate">
+                            <i class="bi bi-dot text-primary"></i>
+                            <a href="{% url 'coursework:topic_detail' topic.id %}" class="text-decoration-none text-dark">
+                                {{ topic.title }}
+                            </a>
+                            <span class="badge bg-{{ topic.status_badge_class }} ms-1" style="font-size: 0.65rem;">
+                                {{ topic.status }}
+                            </span>
+                        </li>
+                        {% empty %}
+                        <li class="text-muted fst-italic">Темы не добавлены</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="mt-3 pt-2">
+                    <a href="{% url 'coursework:topic_list' %}?supervisor={{ sup.id }}" class="btn btn-sm btn-outline-primary w-100">
+                        Все темы руководителя ({{ sup.topics.count }})
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 text-muted">
+        <i class="bi bi-people fs-1 d-block mb-2 text-secondary"></i>
+        <h5>Преподаватели не найдены</h5>
+        <p class="mb-0">Записи отсутствуют или не соответствуют поисковому запросу.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

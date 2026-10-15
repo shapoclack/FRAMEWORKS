@@ -69,4 +69,4 @@ def unassign_topic(topics: list[dict], topic_id: int) -> str:
             topic["student_id"] = None
             topic["status"] = "свободна"
             return f"Тема «{topic['title']}» снова свободна."
-    return f"Тема с id={topic_id} не найдена."
+    return f"Тема с id={topic_id} не найдена."

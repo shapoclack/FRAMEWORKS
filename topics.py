@@ -75,4 +75,4 @@ def get_topic_statistics(topics: list[dict]) -> dict[str, int]:
     stats: dict[str, int] = {}
     for topic in topics:
         stats[topic["status"]] = stats.get(topic["status"], 0) + 1
-    return stats
+    return stats

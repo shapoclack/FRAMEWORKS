@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Каталог тем курсовых работ — {{ title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">
+            <i class="bi bi-journal-text me-2"></i>Каталог тем курсовых работ
+        </h2>
+        <p class="text-muted mb-0">Поиск, выбор и проверка доступности тем для закрепления</p>
+    </div>
+    <div>
+        <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
+            Найдено тем: {{ total_found }}
+        </span>
+    </div>
+</div>
+
+<!-- Панель поиска и фильтрации -->
+<div class="card p-3 shadow-sm mb-4">
+    <form method="get" action="{% url 'coursework:topic_list' %}" class="row g-3 align-items-center">
+        <!-- Поле поиска -->
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Поиск по названию или описанию...">
+            </div>
+        </div>
+
+        <!-- Фильтр по руководителю -->
+        <div class="col-md-4">
+            <select name="supervisor" class="form-select">
+                <option value="">Все руководители</option>
+                {% for sup in supervisors %}
+                <option value="{{ sup.id }}" {% if current_supervisor == sup.id|stringformat:"s" %}selected{% endif %}>
+                    {{ sup.full_name }} ({{ sup.degree }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Кнопка поиска -->
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-funnel me-1"></i>Применить
+            </button>
+            {% if query or current_status or current_supervisor %}
+            <a href="{% url 'coursework:topic_list' %}" class="btn btn-outline-secondary" title="Сбросить фильтры">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Быстрые фильтры по статусу -->
+        <div class="col-12 pt-2 border-top">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="text-muted small me-2">Статус:</span>
+                <a href="?{% if query %}q={{ query }}&{% endif %}{% if current_supervisor %}supervisor={{ current_supervisor }}{% endif %}"
+                   class="btn btn-sm {% if not current_status %}btn-dark{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                    Все статусы
+                </a>
+                {% for status_val, status_name in statuses %}
+                <a href="?status={{ status_val }}{% if query %}&q={{ query }}{% endif %}{% if current_supervisor %}&supervisor={{ current_supervisor }}{% endif %}"
+                   class="btn btn-sm {% if current_status == status_val %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                    {{ status_name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Список тем -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-custom">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">#</th>
+                        <th style="width: 40%;">Тема и аннотация</th>
+                        <th style="width: 20%;">Научный руководитель</th>
+                        <th style="width: 15%;">Студент</th>
+                        <th style="width: 10%;">Статус</th>
+                        <th style="width: 10%;" class="text-end">Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for topic in topics %}
+                    <tr>
+                        <td class="fw-bold text-muted">{{ topic.id }}</td>
+                        <td>
+                            <a href="{% url 'coursework:topic_detail' topic.id %}" class="fw-bold text-decoration-none text-dark d-block mb-1">
+                                {{ topic.title }}
+                            </a>
+                            {% if topic.description %}
+                            <small class="text-muted d-block text-truncate" style="max-width: 450px;">
+                                {{ topic.description }}
+                            </small>
+                            {% endif %}
+                            {% if topic.deadline %}
+                            <div class="small text-danger mt-1">
+                                <i class="bi bi-calendar-event me-1"></i>Срок: {{ topic.deadline|date:"d.m.Y" }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div><i class="bi bi-person-workspace text-muted me-1"></i><strong>{{ topic.supervisor.full_name }}</strong></div>
+                            <small class="text-muted">{{ topic.supervisor.position }}, {{ topic.supervisor.degree }}</small>
+                        </td>
+                        <td>
+                            {% if topic.student %}
+                                <div><i class="bi bi-person text-primary me-1"></i>{{ topic.student.full_name }}</div>
+                                <span class="badge bg-light text-dark border">{{ topic.student.group_name }}</span>
+                            {% else %}
+                                <span class="text-muted small fst-italic">— не назначен —</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ topic.status_badge_class }} badge-status">
+                                {{ topic.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'coursework:topic_detail' topic.id %}" class="btn btn-sm btn-outline-primary">
+                                Подробнее <i class="bi bi-chevron-right ms-1"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-search fs-1 d-block mb-2 text-secondary"></i>
+                            <h5>Темы не найдены</h5>
+                            <p class="mb-0">Попробуйте изменить поисковый запрос или сбросить фильтры.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

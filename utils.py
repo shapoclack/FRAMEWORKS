@@ -38,4 +38,4 @@ def next_id(items: list[dict]) -> int:
     """Вернуть следующий свободный идентификатор."""
     if not items:
         return 1
-    return max(item["id"] for item in items) + 1    
+    return max(item["id"] for item in items) + 1

@@ -11,12 +11,10 @@ from topics import (
 from students import (
     add_student,
     find_student,
-    get_student_by_id,
 )
 from supervisors import (
     add_supervisor,
     assign_topic_to_student,
-    get_supervisor_by_id,
     get_supervisor_full_name,
     unassign_topic,
 )
@@ -332,4 +330,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()
