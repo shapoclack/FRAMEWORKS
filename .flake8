@@ -5,4 +5,5 @@ exclude =
     .venv,
     .git,
     __pycache__,
-    */migrations/*
+    */migrations/*,
+    generate_*.py
