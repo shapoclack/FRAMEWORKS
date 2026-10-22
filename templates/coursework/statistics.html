@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Статистика курсовых работ (SQL-аналитика){% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">
+            <i class="bi bi-graph-up me-2"></i>Статистика и аналитика курсовых работ
+        </h2>
+        <p class="text-muted mb-0">Агрегатные функции SQL (COUNT, SUM, AVG, MIN, MAX), группировка GROUP BY и фильтрация групп HAVING</p>
+    </div>
+    <div>
+        <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
+            <i class="bi bi-database me-1"></i>SQLite Analytics
+        </span>
+    </div>
+</div>
+
+<!-- Сводные агрегатные показатели (COUNT, SUM) -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-primary p-3 text-center">
+            <div class="text-muted small fw-semibold">Всего тем курсовых</div>
+            <div class="display-6 fw-bold text-primary">{{ summary.total_topics|default:0 }}</div>
+            <small class="text-muted">Агрегат COUNT(*)</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-success p-3 text-center">
+            <div class="text-muted small fw-semibold">Свободных тем</div>
+            <div class="display-6 fw-bold text-success">{{ summary.free_topics|default:0 }}</div>
+            <small class="text-muted">SUM(CASE WHEN свободны)</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-warning p-3 text-center">
+            <div class="text-muted small fw-semibold">В процессе выполнения</div>
+            <div class="display-6 fw-bold text-warning">{{ summary.active_topics|default:0 }}</div>
+            <small class="text-muted">Закреплены / на проверке</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-info p-3 text-center">
+            <div class="text-muted small fw-semibold">Защищено работ</div>
+            <div class="display-6 fw-bold text-info">{{ summary.defended_topics|default:0 }}</div>
+            <small class="text-muted">Статус «защищена»</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Блок 1: Количество тем по научным руководителям (LEFT JOIN + GROUP BY) -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-person-workspace me-2 text-primary"></i>Нагрузка руководителей (LEFT JOIN + GROUP BY)
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Научный руководитель</th>
+                                <th>Должность / степень</th>
+                                <th class="text-center">Лимит</th>
+                                <th class="text-center">Тем в базе</th>
+                                <th style="width: 25%;">Заполненность</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in supervisor_stats %}
+                            <tr>
+                                <td class="fw-bold">{{ item.supervisor_name }}</td>
+                                <td class="text-muted small">{{ item.position }}, {{ item.degree }}</td>
+                                <td class="text-center"><span class="badge bg-secondary">{{ item.max_topics }}</span></td>
+                                <td class="text-center">
+                                    <span class="badge bg-{% if item.topics_count > 0 %}primary{% else %}light text-dark border{% endif %} fs-6">
+                                        {{ item.topics_count }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="progress" role="progressbar" style="height: 14px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio item.topics_count item.max_topics 100 %}%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3 text-muted">Данные отсутствуют.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Блок 2: Распределение по статусам (GROUP BY status) -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-pie-chart me-2 text-primary"></i>Распределение по статусам (GROUP BY)
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush mb-3">
+                    {% for item in status_stats %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                        <div>
+                            <i class="bi bi-tag-fill me-2 text-secondary"></i>
+                            <strong>{{ item.status }}</strong>
+                        </div>
+                        <span class="badge bg-primary rounded-pill fs-6">{{ item.count }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted">Данные отсутствуют.</li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Руководители с высокой нагрузкой (HAVING) -->
+                <div class="border-top pt-3">
+                    <h6 class="fw-bold text-dark mb-2">
+                        <i class="bi bi-funnel-fill me-1 text-danger"></i>Фильтрация групп (HAVING COUNT(t.id) > 1):
+                    </h6>
+                    <div class="small text-muted mb-2">Руководители, ведущие более 1 темы:</div>
+                    {% for sup in busy_supervisors %}
+                    <div class="d-flex justify-content-between align-items-center mb-1 bg-light p-2 rounded">
+                        <span>{{ sup.supervisor_name }}</span>
+                        <span class="badge bg-danger">{{ sup.topics_count }} тем</span>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted small">Нет руководителей с нагрузкой более 1 темы.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Блок 3: Распределение студентов по группам (GROUP BY group_name) -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-people me-2 text-primary"></i>Студенты по учебным группам (GROUP BY group_name)
+        </h5>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-3">
+            {% for grp in group_stats %}
+            <div class="col-md-4">
+                <div class="border rounded p-3 d-flex justify-content-between align-items-center bg-light">
+                    <div>
+                        <div class="fw-bold text-dark fs-5">{{ grp.group_name }}</div>
+                        <small class="text-muted">Академическая группа</small>
+                    </div>
+                    <span class="badge bg-info text-dark fs-6">{{ grp.students_count }} студентов</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-muted">Данные отсутствуют.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

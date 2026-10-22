@@ -3,12 +3,32 @@
         "id": 1,
         "full_name": "Петрова Анна Сергеевна",
         "degree": "к.т.н.",
-        "position": "доцент"
+        "position": "доцент",
+        "email": "petrova@example.com",
+        "max_topics": 5
     },
     {
         "id": 2,
-        "full_name": "Сидоров Петр Алексеевич",
+        "full_name": "Сидоров Пётр Алексеевич",
         "degree": "д.т.н.",
-        "position": "профессор"
+        "position": "профессор",
+        "email": "sidorov@example.com",
+        "max_topics": 3
+    },
+    {
+        "id": 3,
+        "full_name": "Кузнецов Дмитрий Игоревич",
+        "degree": "к.ф.-м.н.",
+        "position": "ст. преподаватель",
+        "email": "kuznetsov@example.com",
+        "max_topics": 7
+    },
+    {
+        "id": 4,
+        "full_name": "Морозова Ольга Владимировна",
+        "degree": "к.т.н.",
+        "position": "доцент",
+        "email": "morozova@example.com",
+        "max_topics": 4
     }
 ]

@@ -1,8 +1,50 @@
-    [
+[
     {
         "id": 1,
         "full_name": "Иванов Иван Иванович",
         "group": "ПИ-21-1",
-        "direction": "Программная инженерия"
+        "group_name": "ПИ-21-1",
+        "direction": "Программная инженерия",
+        "email": "ivanov@example.com"
+    },
+    {
+        "id": 2,
+        "full_name": "Петров Пётр Петрович",
+        "group": "ПИ-21-1",
+        "group_name": "ПИ-21-1",
+        "direction": "Программная инженерия",
+        "email": "petrov@example.com"
+    },
+    {
+        "id": 3,
+        "full_name": "Сидорова Анна Сергеевна",
+        "group": "ПИ-21-2",
+        "group_name": "ПИ-21-2",
+        "direction": "Прикладная информатика",
+        "email": "sidorova@example.com"
+    },
+    {
+        "id": 4,
+        "full_name": "Смирнов Алексей Игоревич",
+        "group": "ПИ-21-2",
+        "group_name": "ПИ-21-2",
+        "direction": "Прикладная информатика",
+        "email": "smirnov@example.com"
+    },
+    {
+        "id": 5,
+        "full_name": "Васильева Екатерина Павловна",
+        "group": "ИВТ-21-1",
+        "group_name": "ИВТ-21-1",
+        "direction": "Информатика и вычислительная техника",
+        "email": "vasilieva@example.com"
+    },
+    {
+        "id": 6,
+        "full_name": "Николаев Роман Дмитриевич",
+        "group": "ИВТ-21-1",
+        "group_name": "ИВТ-21-1",
+        "direction": "Информатика и вычислительная техника",
+        "email": "nikolaev@example.com"
     }
 ]

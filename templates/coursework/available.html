@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск свободных тем курсовых работ{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">
+            <i class="bi bi-search-heart me-2"></i>Поиск свободных тем
+        </h2>
+        <p class="text-muted mb-0">Параметризованный SQL-запрос для подбора доступных тем без закрепления</p>
+    </div>
+    <div>
+        <a href="{% url 'coursework:topic_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Все темы
+        </a>
+    </div>
+</div>
+
+<!-- Форма поиска свободных тем по дате / дедлайну -->
+<div class="card p-4 shadow-sm mb-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-funnel me-2 text-primary"></i>Параметры поиска (SQL-фильтрация)</h5>
+    <form method="get" action="{% url 'coursework:available' %}" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label for="date" class="form-label fw-semibold">Крайний срок сдачи (до указанной даты):</label>
+            <input
+                type="date"
+                id="date"
+                name="date"
+                value="{{ booking_date|default:'' }}"
+                class="form-control"
+            >
+            <div class="form-text">Выберите дату дедлайна для фильтрации доступных тем</div>
+        </div>
+
+        <div class="col-md-4">
+            <label for="q" class="form-label fw-semibold">Ключевое слово в теме:</label>
+            <input
+                type="text"
+                id="q"
+                name="q"
+                value="{{ query|default:'' }}"
+                class="form-control"
+                placeholder="Например: веб, ML, бот..."
+            >
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-search me-1"></i>Найти
+            </button>
+            {% if booking_date or query %}
+            <a href="{% url 'coursework:available' %}" class="btn btn-outline-secondary" title="Сбросить поиск">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Результаты поиска -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-list-check me-2 text-success"></i>Свободные темы курсовых работ
+            {% if booking_date %}<span class="badge bg-secondary ms-2">до {{ booking_date }}</span>{% endif %}
+        </h5>
+        <span class="badge bg-success fs-6">Найдено: {{ topics|length }}</span>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-4">
+            {% for topic in topics %}
+            <div class="col-md-6">
+                <article class="card h-100 border-success-subtle shadow-sm p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-secondary">Тема #{{ topic.id }}</span>
+                        <span class="badge bg-success">свободна</span>
+                    </div>
+                    <h5 class="fw-bold mb-2">
+                        <a href="{% url 'coursework:topic_detail' topic.id %}" class="text-decoration-none text-dark">
+                            {{ topic.title }}
+                        </a>
+                    </h5>
+                    <p class="text-muted small mb-3 flex-grow-1">
+                        {{ topic.description|default:"Аннотация отсутствует." }}
+                    </p>
+                    <div class="border-top pt-2 small text-secondary">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="bi bi-person-workspace me-1"></i>Руководитель:</span>
+                            <strong>{{ topic.supervisor_name }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-calendar-event me-1"></i>Дедлайн:</span>
+                            <span class="text-danger fw-bold">{{ topic.deadline }}</span>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'coursework:topic_detail' topic.id %}" class="btn btn-sm btn-outline-success w-100">
+                            Подробнее о теме <i class="bi bi-chevron-right ms-1"></i>
+                        </a>
+                    </div>
+                </article>
+            </div>
+            {% empty %}
+            <div class="col-12 py-5 text-center text-muted">
+                <i class="bi bi-calendar-x fs-1 d-block mb-2 text-warning"></i>
+                <h5>На выбранные критерии свободных тем не найдено</h5>
+                <p class="mb-0">Попробуйте изменить дату дедлайна или очистить параметры фильтрации.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

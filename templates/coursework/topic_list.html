@@ -10,7 +10,10 @@
         </h2>
         <p class="text-muted mb-0">Поиск, выбор и проверка доступности тем для закрепления</p>
     </div>
-    <div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a href="{% url 'coursework:available' %}" class="btn btn-success">
+            <i class="bi bi-search-heart me-1"></i>Найти свободную тему
+        </a>
         <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
             Найдено тем: {{ total_found }}
         </span>

@@ -63,37 +63,17 @@ class CourseworkModelsTestCase(TestCase):
 
 
 class CourseworkViewsTestCase(TestCase):
-    """Тестирование view-функций и HTTP-ответов."""
+    """Тестирование view-функций и HTTP-ответов со слоем SQLite (ПР7)."""
 
     def setUp(self):
         self.client = Client()
-        self.student = Student.objects.create(
-            full_name="Смирнов Алексей Игоревич",
-            group_name="ПИ-21-2",
-            direction="Информатика",
-            email="smirnov@example.com",
-        )
-        self.supervisor = Supervisor.objects.create(
-            full_name="Сидоров Пётр Алексеевич",
-            degree="д.т.н.",
-            position="профессор",
-            email="sidorov@example.com",
-            max_topics=3,
-        )
-        self.topic = Topic.objects.create(
-            title="Оптимизация баз данных",
-            description="Индексы и транзакции",
-            supervisor=self.supervisor,
-            student=self.student,
-            status=Topic.STATUS_ASSIGNED,
-        )
 
     def test_home_view(self):
         response = self.client.get(reverse("core:home"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/home.html")
         self.assertIn("total_topics", response.context)
-        self.assertEqual(response.context["total_topics"], 1)
+        self.assertGreaterEqual(response.context["total_topics"], 1)
 
     def test_about_view(self):
         response = self.client.get(reverse("core:about"))
@@ -112,30 +92,31 @@ class CourseworkViewsTestCase(TestCase):
         response = self.client.get(reverse("coursework:topic_list"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "coursework/topic_list.html")
-        self.assertContains(response, "Оптимизация баз данных")
+        self.assertContains(response, "Разработка веб-приложения")
 
     def test_topic_list_search_and_filter(self):
         # Поиск по подстроке
-        response = self.client.get(reverse("coursework:topic_list"), {"q": "баз данных"})
+        response = self.client.get(reverse("coursework:topic_list"), {"q": "Telegram"})
         self.assertEqual(len(response.context["topics"]), 1)
 
         # Поиск несуществующего
         response_empty = self.client.get(reverse("coursework:topic_list"), {"q": "несуществующая тема 123"})
         self.assertEqual(len(response_empty.context["topics"]), 0)
 
-        # Фильтрация по статусу
-        response_free = self.client.get(reverse("coursework:topic_list"), {"status": "свободна"})
-        self.assertEqual(len(response_free.context["topics"]), 0)
+        # Фильтрация по статусу «защищена»
+        response_defended = self.client.get(reverse("coursework:topic_list"), {"status": "защищена"})
+        self.assertEqual(len(response_defended.context["topics"]), 1)
 
-        response_assigned = self.client.get(reverse("coursework:topic_list"), {"status": "закреплена"})
-        self.assertEqual(len(response_assigned.context["topics"]), 1)
+        # Фильтрация по статусу «свободна»
+        response_free = self.client.get(reverse("coursework:topic_list"), {"status": "свободна"})
+        self.assertEqual(len(response_free.context["topics"]), 4)
 
     def test_topic_detail_view(self):
-        response = self.client.get(reverse("coursework:topic_detail", kwargs={"pk": self.topic.pk}))
+        response = self.client.get(reverse("coursework:topic_detail", kwargs={"pk": 1}))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "coursework/topic_detail.html")
-        self.assertContains(response, self.topic.title)
-        self.assertContains(response, self.supervisor.full_name)
+        self.assertContains(response, "Разработка веб-приложения")
+        self.assertContains(response, "Петрова Анна Сергеевна")
 
     def test_topic_detail_404(self):
         response = self.client.get(reverse("coursework:topic_detail", kwargs={"pk": 99999}))
@@ -145,10 +126,38 @@ class CourseworkViewsTestCase(TestCase):
         response = self.client.get(reverse("coursework:student_list"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "coursework/student_list.html")
-        self.assertContains(response, self.student.full_name)
+        self.assertContains(response, "Иванов Иван Иванович")
 
     def test_supervisor_list_view(self):
         response = self.client.get(reverse("coursework:supervisor_list"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "coursework/supervisor_list.html")
-        self.assertContains(response, self.supervisor.full_name)
+        self.assertContains(response, "Петрова Анна Сергеевна")
+
+    def test_active_topics_view(self):
+        response = self.client.get(reverse("coursework:active_topics"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "coursework/active_topics.html")
+        self.assertContains(response, "Разработка Telegram-бота")
+
+    def test_available_topics_view(self):
+        response = self.client.get(reverse("coursework:available"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "coursework/available.html")
+        self.assertContains(response, "Анализ алгоритмов машинного обучения")
+
+    def test_available_topics_filter_by_date(self):
+        response = self.client.get(reverse("coursework:available"), {"date": "2026-12-15"})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "coursework/available.html")
+        self.assertEqual(len(response.context["topics"]), 2)
+
+    def test_statistics_view(self):
+        response = self.client.get(reverse("coursework:statistics"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "coursework/statistics.html")
+        self.assertIn("summary", response.context)
+        self.assertIn("supervisor_stats", response.context)
+        self.assertIn("status_stats", response.context)
+        self.assertIn("busy_supervisors", response.context)
+        self.assertIn("group_stats", response.context)

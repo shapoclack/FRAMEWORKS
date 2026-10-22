@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Темы в работе — Закрепленные курсовые работы{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">
+            <i class="bi bi-briefcase-fill me-2"></i>Темы в процессе выполнения
+        </h2>
+        <p class="text-muted mb-0">Связанные данные из трёх таблиц (topics, supervisors, students) через SQL JOIN</p>
+    </div>
+    <div>
+        <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
+            Активных тем: {{ topics|length }}
+        </span>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-people-fill me-2 text-primary"></i>Закреплённые темы и контакты участников
+        </h5>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-4">
+            {% for topic in topics %}
+            <div class="col-lg-6">
+                <article class="card h-100 shadow-sm border-primary-subtle p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-secondary">Тема #{{ topic.id }}</span>
+                        <span class="badge bg-primary">{{ topic.status }}</span>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">
+                        <a href="{% url 'coursework:topic_detail' topic.id %}" class="text-decoration-none text-dark">
+                            {{ topic.title }}
+                        </a>
+                    </h5>
+
+                    <p class="text-muted small mb-3">
+                        {{ topic.description }}
+                    </p>
+
+                    <div class="bg-light p-3 rounded mb-3">
+                        <div class="row g-2 small">
+                            <div class="col-sm-6">
+                                <span class="text-muted d-block"><i class="bi bi-person-workspace me-1"></i>Руководитель:</span>
+                                <strong>{{ topic.supervisor_name }}</strong>
+                                <div class="text-muted">{{ topic.supervisor_degree }}</div>
+                                <div class="text-truncate"><i class="bi bi-envelope me-1"></i>{{ topic.supervisor_email }}</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted d-block"><i class="bi bi-person me-1"></i>Студент:</span>
+                                <strong>{{ topic.student_name }}</strong>
+                                <div class="badge bg-info text-dark">{{ topic.student_group }}</div>
+                                <div class="text-truncate"><i class="bi bi-envelope me-1"></i>{{ topic.student_email }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top small">
+                        <span class="text-danger fw-bold">
+                            <i class="bi bi-calendar-check me-1"></i>Дедлайн: {{ topic.deadline }}
+                        </span>
+                        <a href="{% url 'coursework:topic_detail' topic.id %}" class="btn btn-sm btn-outline-primary">
+                            Подробнее <i class="bi bi-chevron-right ms-1"></i>
+                        </a>
+                    </div>
+                </article>
+            </div>
+            {% empty %}
+            <div class="col-12 py-5 text-center text-muted">
+                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                <h5>Активных тем в работе не найдено</h5>
+                <p class="mb-0">На данный момент нет тем со статусом «закреплена» или «на проверке».</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
